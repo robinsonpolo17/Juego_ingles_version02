@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recreo Lúdico de Verbos</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide para los iconos -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounceCustom { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+        .animate-bounce-custom { animation: bounceCustom 1s infinite; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        /* Aseguramos que los botones táctiles no tengan el recuadro azul molesto en móviles */
+        button { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100 p-4 flex flex-col items-center">
+
+    <!-- Contenedor Principal -->
+    <div id="app-container" class="max-w-xl w-full mx-auto mt-4 sm:mt-10">
+        <!-- El contenido se inyectará aquí a través de JavaScript -->
+    </div>
+
+    <script>
+        // La lista completa de verbos
+        const verbList = [
+            { en: "Be", es: "Ser / Estar" }, { en: "Have", es: "Tener" }, { en: "Do", es: "Hacer" },
+            { en: "Say", es: "Decir" }, { en: "Get", es: "Obtener / Conseguir" }, { en: "Make", es: "Hacer / Crear" },
+            { en: "Go", es: "Ir" }, { en: "Know", es: "Saber / Conocer" }, { en: "Take", es: "Tomar / Llevar" },
+            { en: "See", es: "Ver" }, { en: "Come", es: "Venir" }, { en: "Think", es: "Pensar" },
+            { en: "Look", es: "Mirar" }, { en: "Want", es: "Querer" }, { en: "Give", es: "Dar" },
+            { en: "Use", es: "Usar" }, { en: "Find", es: "Encontrar" }, { en: "Tell", es: "Decir / Contar" },
+            { en: "Ask", es: "Preguntar" }, { en: "Work", es: "Trabajar" }, { en: "Seem", es: "Parecer" },
+            { en: "Feel", es: "Sentir" }, { en: "Try", es: "Intentar" }, { en: "Leave", es: "Dejar / Salir" },
+            { en: "Call", es: "Llamar" }, { en: "Put", es: "Poner" }, { en: "Keep", es: "Mantener" },
+            { en: "Let", es: "Permitir" }, { en: "Begin", es: "Empezar" }, { en: "Help", es: "Ayudar" },
+            { en: "Talk", es: "Hablar" }, { en: "Turn", es: "Girar / Convertirse" }, { en: "Start", es: "Comenzar" },
+            { en: "Show", es: "Mostrar" }, { en: "Hear", es: "Escuchar / Oír" }, { en: "Play", es: "Jugar / Tocar" },
+            { en: "Run", es: "Correr" }, { en: "Move", es: "Mover" }, { en: "Live", es: "Vivir" },
+            { en: "Believe", es: "Creer" }, { en: "Bring", es: "Traer" }, { en: "Happen", es: "Pasar / Suceder" },
+            { en: "Write", es: "Escribir" }, { en: "Provide", es: "Proveer" }, { en: "Sit", es: "Sentarse" },
+            { en: "Stand", es: "Estar de pie" }, { en: "Lose", es: "Perder" }, { en: "Pay", es: "Pagar" },
+            { en: "Meet", es: "Conocer / Reunirse" }, { en: "Include", es: "Incluir" }, { en: "Continue", es: "Continuar" },
+            { en: "Set", es: "Establecer / Colocar" }, { en: "Learn", es: "Aprender" }, { en: "Change", es: "Cambiar" },
+            { en: "Lead", es: "Liderar" }, { en: "Understand", es: "Entender" }, { en: "Watch", es: "Ver / Observar" },
+            { en: "Follow", es: "Seguir" }, { en: "Stop", es: "Detener" }, { en: "Create", es: "Crear" },
+            { en: "Speak", es: "Hablar" }, { en: "Read", es: "Leer" }, { en: "Allow", es: "Permitir" },
+            { en: "Add", es: "Añadir" }, { en: "Spend", es: "Gastar / Pasar tiempo" }, { en: "Grow", es: "Crecer" },
+            { en: "Open", es: "Abrir" }, { en: "Walk", es: "Caminar" }, { en: "Win", es: "Ganar" },
+            { en: "Offer", es: "Ofrecer" }, { en: "Remember", es: "Recordar" }, { en: "Love", es: "Amar" },
+            { en: "Consider", es: "Considerar" }, { en: "Appear", es: "Aparecer" }, { en: "Buy", es: "Comprar" },
+            { en: "Wait", es: "Esperar" }, { en: "Serve", es: "Servir" }, { en: "Die", es: "Morir" },
+            { en: "Send", es: "Enviar" }, { en: "Expect", es: "Esperar (anticipar)" }, { en: "Build", es: "Construir" },
+            { en: "Stay", es: "Permanecer" }, { en: "Fall", es: "Caer" }, { en: "Cut", es: "Cortar" },
+            { en: "Reach", es: "Alcanzar" }, { en: "Kill", es: "Matar" }, { en: "Remain", es: "Permanecer" },
+            { en: "Suggest", es: "Sugerir" }, { en: "Raise", es: "Elevar" }, { en: "Pass", es: "Pasar" },
+            { en: "Sell", es: "Vender" }, { en: "Require", es: "Requerir" }, { en: "Report", es: "Informar" },
+            { en: "Decide", es: "Decidir" }, { en: "Pull", es: "Tirar / Jalar" }, { en: "Return", es: "Regresar" },
+            { en: "Explain", es: "Explicar" }, { en: "Hope", es: "Esperar (tener esperanza)" },
+            { en: "Develop", es: "Desarrollar" }, { en: "Carry", es: "Llevar / Cargar" }
+        ];
+
+        // Variables de estado del juego
+        let score = 0;
+        let streak = 0;
+        let currentQuestion = null;
+        let currentOptions = [];
+        let answered = false;
+
+        const container = document.getElementById('app-container');
+
+        // Función para mezclar arreglos (Shuffle)
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        // --- VISTAS ---
+
+        function renderMenu() {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center space-y-8 animate-fade-in text-center">
+                    <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl w-full border-4 border-blue-400">
+                        <h1 class="text-4xl font-extrabold text-blue-600 mb-2 drop-shadow-sm">¡Recreo Lúdico!</h1>
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-500 mb-8">Aprende 100 Verbos en Inglés</h2>
+                        
+                        <div class="space-y-4">
+                            <button onclick="startPlay()" class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white text-xl font-bold py-4 px-6 rounded-2xl shadow-lg transform transition active:scale-95">
+                                <i data-lucide="play" class="w-7 h-7"></i> ¡Jugar Ahora!
+                            </button>
+                            
+                            <button onclick="showStrategies()" class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white text-xl font-bold py-4 px-6 rounded-2xl shadow-lg transform transition active:scale-95">
+                                <i data-lucide="book-open" class="w-7 h-7"></i> Estrategias
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function showStrategies() {
+            container.innerHTML = `
+                <div class="bg-white rounded-3xl shadow-xl border-4 border-purple-300 animate-fade-in overflow-hidden">
+                    <div class="p-4 sm:p-6 flex items-center justify-between bg-purple-50 border-b border-purple-100">
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-purple-600 flex items-center gap-3">
+                            <i data-lucide="brain" class="w-8 h-8"></i> Estrategias
+                        </h2>
+                        <button onclick="renderMenu()" class="p-2 bg-white hover:bg-gray-100 rounded-full text-gray-600 shadow-sm transition">
+                            <i data-lucide="x-circle" class="w-7 h-7"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-4 sm:p-6 space-y-6 text-left">
+                        <div class="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                            <h3 class="text-lg sm:text-xl font-bold text-purple-700 flex items-center gap-2 mb-2">
+                                <i data-lucide="target" class="w-5 h-5"></i> 1. Divide y Vencerás
+                            </h3>
+                            <p class="text-gray-700 text-sm sm:text-base">Aprende de 5 a 10 verbos por semana. Escríbelos en notas y pégalos donde los veas a diario.</p>
+                        </div>
+
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                            <h3 class="text-lg sm:text-xl font-bold text-blue-700 flex items-center gap-2 mb-2">
+                                <i data-lucide="zap" class="w-5 h-5"></i> 2. Asociación Física (TPR)
+                            </h3>
+                            <p class="text-gray-700 text-sm sm:text-base">Asocia el verbo con una acción real. Al decir <b>"Run"</b>, mueve los brazos como si corrieras.</p>
+                        </div>
+
+                        <div class="bg-green-50 p-4 rounded-xl border border-green-100">
+                            <h3 class="text-lg sm:text-xl font-bold text-green-700 flex items-center gap-2 mb-2">
+                                <i data-lucide="star" class="w-5 h-5"></i> 3. Crea Oraciones Locas
+                            </h3>
+                            <p class="text-gray-700 text-sm sm:text-base">Imagina cosas graciosas: "The alien <b>walks</b> in my kitchen" (El alienígena camina en mi cocina).</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 sm:p-6 pt-0">
+                        <button onclick="startPlay()" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition transform active:scale-95 text-lg">
+                            ¡Aplicar en el Juego!
+                        </button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // --- LÓGICA DEL JUEGO ---
+
+        function startPlay() {
+            generateQuestion();
+        }
+
+        function generateQuestion() {
+            answered = false;
+            
+            // Seleccionar verbo correcto al azar
+            currentQuestion = verbList[Math.floor(Math.random() * verbList.length)];
+            
+            // Seleccionar 3 opciones incorrectas
+            const wrongOptions = [];
+            while (wrongOptions.length < 3) {
+                const randomVerb = verbList[Math.floor(Math.random() * verbList.length)];
+                if (randomVerb.en !== currentQuestion.en && !wrongOptions.find(v => v.en === randomVerb.en)) {
+                    wrongOptions.push(randomVerb);
+                }
+            }
+            
+            currentOptions = shuffleArray([currentQuestion, ...wrongOptions]);
+            renderGameUI();
+        }
+
+        function renderGameUI() {
+            const progressWidth = (streak % 10) * 10;
+            
+            let optionsHTML = '';
+            currentOptions.forEach((option, index) => {
+                optionsHTML += `
+                    <button id="btn-${index}" onclick="handleAnswer(${index})" class="option-btn py-4 px-6 rounded-2xl text-xl sm:text-2xl font-bold transition-all duration-200 flex justify-center items-center bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 text-blue-800 transform active:scale-95">
+                        ${option.en}
+                    </button>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="animate-fade-in w-full">
+                    <!-- Cabecera -->
+                    <div class="flex justify-between items-center mb-6 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border-2 border-blue-100">
+                        <button onclick="renderMenu()" class="text-gray-400 hover:text-gray-600 p-1">
+                            <i data-lucide="x-circle" class="w-7 h-7 sm:w-8 sm:h-8"></i>
+                        </button>
+                        <div class="flex items-center gap-3 sm:gap-4">
+                            <div class="flex items-center gap-1 text-yellow-500 font-bold text-lg sm:text-xl">
+                                <i data-lucide="star" class="fill-current w-5 h-5 sm:w-6 sm:h-6"></i> <span id="score-display">${score}</span>
+                            </div>
+                            <div class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full font-bold flex items-center gap-1 text-sm sm:text-base">
+                                Racha: <span id="streak-display">${streak}</span> 🔥
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Principal -->
+                    <div class="bg-white rounded-3xl shadow-lg p-6 sm:p-8 text-center border-4 border-blue-300 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-blue-100">
+                            <div class="h-full bg-blue-500 transition-all duration-300" style="width: ${progressWidth}%"></div>
+                        </div>
+                        <h3 class="text-gray-500 font-bold uppercase tracking-wider mb-2 mt-2 text-sm sm:text-base">¿Cómo se dice en inglés?</h3>
+                        <h2 class="text-3xl sm:text-5xl font-extrabold text-blue-700 mb-8 drop-shadow-sm min-h-[60px] flex items-center justify-center">
+                            ${currentQuestion.es}
+                        </h2>
+
+                        <!-- Opciones -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" id="options-container">
+                            ${optionsHTML}
+                        </div>
+                    </div>
+
+                    <!-- Área de Feedback (Acierto o Error) -->
+                    <div id="feedback-area" class="w-full mt-6 min-h-[100px]"></div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function handleAnswer(index) {
+            if (answered) return;
+            answered = true;
+            
+            const selectedVerb = currentOptions[index];
+            const isCorrect = selectedVerb.en === currentQuestion.en;
+            const clickedBtn = document.getElementById(`btn-${index}`);
+            const feedbackArea = document.getElementById('feedback-area');
+
+            // Deshabilitar todos los botones visualmente
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(btn => {
+                btn.onclick = null; // quitar eventos
+                btn.classList.remove('active:scale-95', 'hover:bg-blue-100');
+            });
+
+            if (isCorrect) {
+                // Acierto
+                score += 10;
+                streak += 1;
+                document.getElementById('score-display').innerText = score;
+                document.getElementById('streak-display').innerText = streak;
+
+                // Estilos de acierto
+                clickedBtn.className = "option-btn py-4 px-6 rounded-2xl text-xl sm:text-2xl font-bold transition-all duration-200 flex justify-center items-center bg-green-500 text-white border-2 border-green-600 scale-105 shadow-md";
+                
+                // Opacar los demás
+                allBtns.forEach((btn, i) => {
+                    if(i !== index) btn.classList.add('opacity-40', 'bg-gray-100', 'text-gray-400');
+                });
+
+                // Mostrar mensaje de éxito
+                feedbackArea.innerHTML = `
+                    <div class="animate-bounce-custom text-center text-green-600 font-extrabold text-xl sm:text-2xl flex justify-center items-center gap-2 bg-green-100 py-3 rounded-2xl">
+                        <i data-lucide="check-circle" class="w-7 h-7"></i> ¡Excelente!
+                    </div>
+                `;
+                lucide.createIcons();
+
+                // Pasar a la siguiente automáticamente
+                setTimeout(() => {
+                    generateQuestion();
+                }, 1200);
+
+            } else {
+                // Error
+                streak = 0;
+                document.getElementById('streak-display').innerText = streak;
+
+                // Estilo botón incorrecto
+                clickedBtn.className = "option-btn py-4 px-6 rounded-2xl text-xl sm:text-2xl font-bold transition-all duration-200 flex justify-center items-center bg-red-500 text-white border-2 border-red-600 scale-95 opacity-90";
+                
+                // Encontrar el correcto y pintarlo de verde
+                const correctIdx = currentOptions.findIndex(v => v.en === currentQuestion.en);
+                const correctBtn = document.getElementById(`btn-${correctIdx}`);
+                correctBtn.className = "option-btn py-4 px-6 rounded-2xl text-xl sm:text-2xl font-bold transition-all duration-200 flex justify-center items-center bg-green-500 text-white border-2 border-green-600 shadow-md";
+
+                // Opacar los que no son ni el clickeado ni el correcto
+                allBtns.forEach((btn, i) => {
+                    if(i !== index && i !== correctIdx) {
+                        btn.className = "option-btn py-4 px-6 rounded-2xl text-xl sm:text-2xl font-bold transition-all duration-200 flex justify-center items-center opacity-40 bg-gray-100 text-gray-400 border-2 border-gray-200";
+                    }
+                });
+
+                // Mostrar explicación
+                feedbackArea.innerHTML = `
+                    <div class="animate-slide-up">
+                        <div class="bg-red-50 border-l-8 border-red-500 p-4 sm:p-6 rounded-2xl shadow-lg relative text-left">
+                            <div class="flex items-start gap-3 sm:gap-4">
+                                <div class="bg-red-100 p-2 rounded-full mt-1 shrink-0">
+                                    <i data-lucide="rotate-ccw" class="text-red-600 w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg sm:text-xl font-bold text-red-800 mb-2">¡Casi lo logras!</h4>
+                                    <p class="text-gray-700 text-base sm:text-lg leading-relaxed">
+                                        Elegiste <span class="font-bold text-red-600">"${selectedVerb.en}"</span>, pero esa palabra significa <span class="font-bold underline">${selectedVerb.es}</span>.
+                                    </p>
+                                    <p class="text-gray-800 text-base sm:text-lg mt-3 bg-yellow-100 inline-block px-3 py-1 rounded-lg">
+                                        Para <b>"${currentQuestion.es}"</b> usa <span class="font-bold text-green-700">"${currentQuestion.en}"</span>.
+                                    </p>
+                                </div>
+                            </div>
+                            <button onclick="generateQuestion()" class="mt-5 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-xl shadow flex justify-center items-center gap-2 transition transform active:scale-95 text-lg">
+                                Siguiente <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        // Iniciar la aplicación mostrando el menú
+        renderMenu();
+
+    </script>
+</body>
+</html>
