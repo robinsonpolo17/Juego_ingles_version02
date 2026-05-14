@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recreo Lúdico de Verbos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0e17;
+            --surface: #1a1929;
+            --surface2: #252438;
+            --border: #2e2c4a;
+            --accent: #7c6af7;
+            --accent2: #f7c948;
+            --green: #3ecf8e;
+            --red: #ff5e5b;
+            --text: #fffffe;
+            --muted: #a7a5c3;
+            --card-radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            background-image:
+                radial-gradient(ellipse at 20% 10%, rgba(124,106,247,0.18) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(247,201,72,0.10) 0%, transparent 50%);
+        }
+
+        #app { width: 100%; max-width: 480px; margin: 0 auto; }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes popIn  { from { opacity:0; transform:scale(.8); } to { opacity:1; transform:scale(1); } }
+        @keyframes shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+        @keyframes pulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+        @keyframes spin   { to { transform:rotate(360deg); } }
+        @keyframes confettiFall { to { transform:translateY(120vh) rotate(720deg); opacity:0; } }
+        @keyframes countDown { from{stroke-dashoffset:0} to{stroke-dashoffset:220} }
+
+        .fade-up   { animation: fadeUp .45s cubic-bezier(.22,1,.36,1) both; }
+        .pop-in    { animation: popIn  .35s cubic-bezier(.34,1.56,.64,1) both; }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--card-radius);
+            padding: 24px;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 14px 24px; border-radius: 14px; border: none; cursor: pointer;
+            font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1rem;
+            transition: transform .15s, box-shadow .15s, opacity .15s;
+        }
+        .btn:active { transform: scale(.96); }
+        .btn-primary   { background: var(--accent); color: #fff; box-shadow: 0 4px 20px rgba(124,106,247,.4); }
+        .btn-primary:hover { box-shadow: 0 6px 28px rgba(124,106,247,.55); }
+        .btn-gold      { background: var(--accent2); color: #1a1929; box-shadow: 0 4px 20px rgba(247,201,72,.3); }
+        .btn-ghost     { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
+        .btn-green     { background: var(--green); color: #0f2e20; box-shadow: 0 4px 16px rgba(62,207,142,.3); }
+        .btn-red       { background: var(--red); color: #fff; }
+        .btn-full      { width: 100%; }
+        .btn-lg        { font-size: 1.15rem; padding: 16px 28px; border-radius: 16px; }
+
+        /* ── MENU ── */
+        .logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 2.4rem; font-weight: 700;
+            letter-spacing: -1px; line-height: 1;
+        }
+        .logo span { color: var(--accent2); }
+
+        .mode-card {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: border-color .2s, transform .15s, box-shadow .2s;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .mode-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,106,247,.2); }
+        .mode-card:active { transform: scale(.97); }
+        .mode-icon { font-size: 2rem; width: 52px; height: 52px; display:flex; align-items:center; justify-content:center; border-radius:12px; flex-shrink:0; }
+
+        /* ── HUD ── */
+        .hud {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--surface); border: 1.5px solid var(--border);
+            border-radius: 16px; padding: 12px 16px; margin-bottom: 16px;
+        }
+        .hud-pill {
+            display: flex; align-items: center; gap: 6px;
+            font-weight: 800; font-size: 1rem;
+        }
+        .hud-icon { font-size: 1.2rem; }
+
+        /* ── PROGRESS BAR ── */
+        .progress-wrap { background: var(--surface2); border-radius: 99px; height: 6px; overflow: hidden; margin-bottom: 20px; }
+        .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .4s ease; }
+
+        /* ── QUESTION CARD ── */
+        .question-label { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+        .question-word  { font-size: 2.8rem; font-weight: 900; line-height: 1.1; min-height: 70px; display:flex; align-items:center; justify-content:center; text-align:center; }
+
+        /* ── OPTION BUTTONS ── */
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .option-btn {
+            background: var(--surface2); border: 2px solid var(--border);
+            border-radius: 14px; padding: 18px 12px;
+            font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.05rem;
+            color: var(--text); cursor: pointer;
+            transition: border-color .15s, background .15s, transform .12s, box-shadow .15s;
+            line-height: 1.2;
+        }
+        .option-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(124,106,247,.12); transform: translateY(-1px); }
+        .option-btn:active:not(:disabled) { transform: scale(.97); }
+        .option-btn.correct { background: rgba(62,207,142,.15); border-color: var(--green); color: var(--green); animation: pulse .4s ease; }
+        .option-btn.wrong   { background: rgba(255,94,91,.12); border-color: var(--red); color: var(--red); animation: shake .4s ease; }
+        .option-btn.dimmed  { opacity: .3; }
+        .option-btn:disabled { cursor: default; }
+
+        /* ── FEEDBACK ── */
+        .feedback-box { border-radius: 16px; padding: 18px 20px; margin-top: 16px; }
+        .feedback-correct { background: rgba(62,207,142,.1); border: 1.5px solid rgba(62,207,142,.3); }
+        .feedback-wrong   { background: rgba(255,94,91,.08); border: 1.5px solid rgba(255,94,91,.25); }
+
+        /* ── TIMER RING ── */
+        .timer-ring { position: relative; width: 44px; height: 44px; }
+        .timer-ring svg { transform: rotate(-90deg); }
+        .timer-track { fill: none; stroke: var(--border); stroke-width: 4; }
+        .timer-fill  { fill: none; stroke: var(--accent2); stroke-width: 4; stroke-linecap: round;
+                       stroke-dasharray: 220; transition: stroke .3s; }
+        .timer-text  { position: absolute; inset:0; display:flex; align-items:center; justify-content:center;
+                       font-family:'Space Mono',monospace; font-weight:700; font-size:.85rem; }
+
+        /* ── TYPE MODE INPUT ── */
+        .type-input {
+            width: 100%; background: var(--surface2); border: 2px solid var(--border);
+            border-radius: 14px; padding: 16px 20px;
+            font-family: 'Nunito', sans-serif; font-size: 1.3rem; font-weight: 700;
+            color: var(--text); outline: none; text-align: center;
+            transition: border-color .2s;
+        }
+        .type-input:focus { border-color: var(--accent); }
+        .type-input.correct { border-color: var(--green); background: rgba(62,207,142,.08); color: var(--green); }
+        .type-input.wrong   { border-color: var(--red); background: rgba(255,94,91,.06); }
+
+        /* ── FLASHCARD ── */
+        .flashcard-wrap { perspective: 1000px; height: 200px; cursor: pointer; }
+        .flashcard-inner {
+            width: 100%; height: 100%;
+            position: relative; transform-style: preserve-3d;
+            transition: transform .5s cubic-bezier(.4,0,.2,1);
+        }
+        .flashcard-inner.flipped { transform: rotateY(180deg); }
+        .flashcard-face {
+            position: absolute; inset:0;
+            background: var(--surface2); border: 2px solid var(--border); border-radius: 20px;
+            display: flex; flex-direction:column; align-items: center; justify-content: center;
+            backface-visibility: hidden;
+        }
+        .flashcard-back { transform: rotateY(180deg); background: linear-gradient(135deg, rgba(124,106,247,.15), rgba(247,201,72,.08)); border-color: var(--accent); }
+
+        /* ── STATS ── */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-box { background: var(--surface2); border-radius: 14px; padding: 16px; text-align: center; }
+        .stat-num { font-size: 2rem; font-weight: 900; font-family: 'Space Mono', monospace; }
+        .stat-label { font-size: .8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+
+        /* ── BADGE ── */
+        .badge-row { display:flex; flex-wrap:wrap; gap:8px; }
+        .badge { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 99px;
+                 padding: 6px 14px; font-size: .8rem; font-weight: 700; display:flex; align-items:center; gap:5px; }
+        .badge.earned { border-color: var(--accent2); color: var(--accent2); background: rgba(247,201,72,.08); }
+
+        /* ── CONFETTI ── */
+        .confetti-piece {
+            position: fixed; width: 10px; height: 10px; border-radius: 2px;
+            animation: confettiFall 1.6s ease-in forwards;
+            pointer-events: none; z-index: 9999;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* ── BACK BTN ── */
+        .back-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.5rem; line-height:1; padding:4px 8px; transition:color .2s; }
+        .back-btn:hover { color: var(--text); }
+
+        /* STREAK FIRE ANIMATION */
+        @keyframes firePop { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(1)} }
+        .fire-pop { animation: firePop .3s ease; }
+
+        /* ── SECTION TITLE ── */
+        .section-title { font-size:.75rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+
+        .gap-3 { gap: 12px; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        .mt-5 { margin-top: 20px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mb-4 { margin-bottom: 16px; }
+        .text-sm { font-size: .9rem; }
+        .text-muted { color: var(--muted); }
+        .text-green { color: var(--green); }
+        .text-red { color: var(--red); }
+        .text-accent { color: var(--accent); }
+        .text-gold { color: var(--accent2); }
+        .fw-900 { font-weight: 900; }
+        .fw-700 { font-weight: 700; }
+        .text-center { text-align: center; }
+        .w-full { width: 100%; }
+        .rounded { border-radius: 8px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ===================== DATA =====================
+const verbList = [
+    { en:"Be", es:"Ser / Estar" }, { en:"Have", es:"Tener" }, { en:"Do", es:"Hacer" },
+    { en:"Say", es:"Decir" }, { en:"Get", es:"Obtener / Conseguir" }, { en:"Make", es:"Hacer / Crear" },
+    { en:"Go", es:"Ir" }, { en:"Know", es:"Saber / Conocer" }, { en:"Take", es:"Tomar / Llevar" },
+    { en:"See", es:"Ver" }, { en:"Come", es:"Venir" }, { en:"Think", es:"Pensar" },
+    { en:"Look", es:"Mirar" }, { en:"Want", es:"Querer" }, { en:"Give", es:"Dar" },
+    { en:"Use", es:"Usar" }, { en:"Find", es:"Encontrar" }, { en:"Tell", es:"Decir / Contar" },
+    { en:"Ask", es:"Preguntar" }, { en:"Work", es:"Trabajar" }, { en:"Seem", es:"Parecer" },
+    { en:"Feel", es:"Sentir" }, { en:"Try", es:"Intentar" }, { en:"Leave", es:"Dejar / Salir" },
+    { en:"Call", es:"Llamar" }, { en:"Put", es:"Poner" }, { en:"Keep", es:"Mantener" },
+    { en:"Let", es:"Permitir" }, { en:"Begin", es:"Empezar" }, { en:"Help", es:"Ayudar" },
+    { en:"Talk", es:"Hablar" }, { en:"Turn", es:"Girar / Convertirse" }, { en:"Start", es:"Comenzar" },
+    { en:"Show", es:"Mostrar" }, { en:"Hear", es:"Escuchar / Oír" }, { en:"Play", es:"Jugar / Tocar" },
+    { en:"Run", es:"Correr" }, { en:"Move", es:"Mover" }, { en:"Live", es:"Vivir" },
+    { en:"Believe", es:"Creer" }, { en:"Bring", es:"Traer" }, { en:"Happen", es:"Pasar / Suceder" },
+    { en:"Write", es:"Escribir" }, { en:"Provide", es:"Proveer" }, { en:"Sit", es:"Sentarse" },
+    { en:"Stand", es:"Estar de pie" }, { en:"Lose", es:"Perder" }, { en:"Pay", es:"Pagar" },
+    { en:"Meet", es:"Conocer / Reunirse" }, { en:"Include", es:"Incluir" }, { en:"Continue", es:"Continuar" },
+    { en:"Set", es:"Establecer / Colocar" }, { en:"Learn", es:"Aprender" }, { en:"Change", es:"Cambiar" },
+    { en:"Lead", es:"Liderar" }, { en:"Understand", es:"Entender" }, { en:"Watch", es:"Ver / Observar" },
+    { en:"Follow", es:"Seguir" }, { en:"Stop", es:"Detener" }, { en:"Create", es:"Crear" },
+    { en:"Speak", es:"Hablar" }, { en:"Read", es:"Leer" }, { en:"Allow", es:"Permitir" },
+    { en:"Add", es:"Añadir" }, { en:"Spend", es:"Gastar / Pasar tiempo" }, { en:"Grow", es:"Crecer" },
+    { en:"Open", es:"Abrir" }, { en:"Walk", es:"Caminar" }, { en:"Win", es:"Ganar" },
+    { en:"Offer", es:"Ofrecer" }, { en:"Remember", es:"Recordar" }, { en:"Love", es:"Amar" },
+    { en:"Consider", es:"Considerar" }, { en:"Appear", es:"Aparecer" }, { en:"Buy", es:"Comprar" },
+    { en:"Wait", es:"Esperar" }, { en:"Serve", es:"Servir" }, { en:"Die", es:"Morir" },
+    { en:"Send", es:"Enviar" }, { en:"Expect", es:"Esperar (anticipar)" }, { en:"Build", es:"Construir" },
+    { en:"Stay", es:"Permanecer" }, { en:"Fall", es:"Caer" }, { en:"Cut", es:"Cortar" },
+    { en:"Reach", es:"Alcanzar" }, { en:"Remain", es:"Permanecer/Quedarse" },
+    { en:"Suggest", es:"Sugerir" }, { en:"Raise", es:"Elevar / Subir" }, { en:"Pass", es:"Pasar" },
+    { en:"Sell", es:"Vender" }, { en:"Require", es:"Requerir" }, { en:"Report", es:"Informar" },
+    { en:"Decide", es:"Decidir" }, { en:"Pull", es:"Tirar / Jalar" }, { en:"Return", es:"Regresar" },
+    { en:"Explain", es:"Explicar" }, { en:"Hope", es:"Esperar (tener esperanza)" },
+    { en:"Develop", es:"Desarrollar" }, { en:"Carry", es:"Llevar / Cargar" },
+    { en:"Choose", es:"Elegir" }, { en:"Eat", es:"Comer" }, { en:"Sleep", es:"Dormir" },
+    { en:"Drink", es:"Beber" }, { en:"Swim", es:"Nadar" }, { en:"Dance", es:"Bailar" },
+    { en:"Sing", es:"Cantar" }, { en:"Laugh", es:"Reír" }, { en:"Cry", es:"Llorar" },
+    { en:"Jump", es:"Saltar" }, { en:"Fly", es:"Volar" }, { en:"Drive", es:"Manejar" },
+    { en:"Teach", es:"Enseñar" }, { en:"Study", es:"Estudiar" }, { en:"Finish", es:"Terminar" },
+];
+
+// ===================== STATE =====================
+let state = {
+    screen: 'menu',
+    mode: null,          // 'quiz', 'inverted', 'type', 'flash', 'timed'
+    score: 0,
+    streak: 0,
+    bestStreak: +localStorage.getItem('verbmaster_bestStreak') || 0,
+    totalAnswered: +localStorage.getItem('verbmaster_totalAnswered') || 0,
+    totalCorrect: +localStorage.getItem('verbmaster_totalCorrect') || 0,
+    currentVerb: null,
+    options: [],
+    answered: false,
+    flashFlipped: false,
+    timerSec: 15,
+    timerInterval: null,
+    sessionCorrect: 0,
+    sessionTotal: 0,
+    difficulty: 'normal', // easy(3opts) / normal(4opts) / hard(6opts)
+};
+
+const app = document.getElementById('app');
+
+// ===================== UTILS =====================
+function shuffle(arr) { return [...arr].sort(() => Math.random() - .5); }
+function pick(arr, n) { return shuffle(arr).slice(0, n); }
+function saveStats() {
+    localStorage.setItem('verbmaster_bestStreak', state.bestStreak);
+    localStorage.setItem('verbmaster_totalAnswered', state.totalAnswered);
+    localStorage.setItem('verbmaster_totalCorrect', state.totalCorrect);
+}
+
+// Confetti
+function fireConfetti() {
+    const colors = ['#7c6af7','#f7c948','#3ecf8e','#ff5e5b','#fff'];
+    for (let i = 0; i < 40; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.cssText = `
+            left:${Math.random()*100}vw;
+            top:-10px;
+            background:${colors[Math.floor(Math.random()*colors.length)]};
+            animation-delay:${Math.random()*.6}s;
+            animation-duration:${1.2+Math.random()*.8}s;
+            transform:rotate(${Math.random()*360}deg);
+        `;
+        document.body.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+    }
+}
+
+// Sounds
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let ctx;
+function getCtx() { if (!ctx) ctx = new AudioCtx(); return ctx; }
+function beep(freq, dur, type='sine', vol=.15) {
+    try {
+        const c = getCtx();
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.connect(gain); gain.connect(c.destination);
+        osc.frequency.value = freq;
+        osc.type = type;
+        gain.gain.setValueAtTime(vol, c.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+        osc.start(); osc.stop(c.currentTime + dur);
+    } catch(e){}
+}
+function soundCorrect() { beep(523,0.1); setTimeout(()=>beep(659,0.1),80); setTimeout(()=>beep(784,0.2),160); }
+function soundWrong()   { beep(220,0.25,'sawtooth',.12); }
+function soundStreak()  { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.15),i*80)); }
+
+// ===================== RENDER ENGINE =====================
+function render() {
+    switch(state.screen) {
+        case 'menu':   renderMenu(); break;
+        case 'game':   renderGame(); break;
+        case 'result': renderResult(); break;
+        case 'stats':  renderStats(); break;
+        case 'flash':  renderFlash(); break;
+        case 'tip':    renderTip(); break;
+    }
+}
+
+// ===================== MENU =====================
+function renderMenu() {
+    app.innerHTML = `
+    <div class="fade-up" style="display:flex;flex-direction:column;gap:20px;padding:8px 0">
+        <div style="text-align:center;padding:28px 0 12px">
+            <div class="logo">¡Recreo <span>Lúdico!</span></div>
+            <div style="color:var(--muted);font-size:.9rem;margin-top:6px;font-weight:700">🇬🇧 ${verbList.length} verbos · Aprende inglés</div>
+            <div style="margin-top:10px;font-size:.72rem;color:var(--muted);opacity:.7;font-style:italic">App realizada por Robinson Polo Lozada · Ayuda IA</div>
+        </div>
+
+        <div>
+            <div class="section-title">Modo de juego</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+                ${modeCard('quiz','🎯','Quiz Clásico','Elige la traducción correcta · ES → EN','#7c6af7')}
+                ${modeCard('inverted','🔄','Modo Invertido','Lee el inglés · Elige la traducción · EN → ES','#f7c948')}
+                ${modeCard('type','⌨️','Modo Escritura','Escribe el verbo correcto en inglés','#3ecf8e')}
+                ${modeCard('timed','⚡','Contra el Reloj','15 segundos por pregunta ¡sin piedad!','#ff5e5b')}
+                ${modeCard('flash','🃏','Flashcards','Repasa todos los verbos uno a uno','#a78bfa')}
+            </div>
+        </div>
+
+        <div>
+            <div class="section-title">Dificultad</div>
+            <div style="display:flex;gap:8px">
+                ${diffBtn('easy','Fácil','3 opciones')}
+                ${diffBtn('normal','Normal','4 opciones')}
+                ${diffBtn('hard','Difícil','6 opciones')}
+            </div>
+        </div>
+
+        <button class="btn btn-ghost btn-full" onclick="goStats()">
+            📊 Mis Estadísticas
+        </button>
+    </div>`;
+}
+
+function modeCard(mode, icon, title, desc, color) {
+    return `<div class="mode-card" onclick="startMode('${mode}')">
+        <div class="mode-icon" style="background:${color}22;font-size:1.6rem">${icon}</div>
+        <div>
+            <div style="font-weight:800;font-size:1rem">${title}</div>
+            <div style="color:var(--muted);font-size:.83rem;margin-top:2px">${desc}</div>
+        </div>
+        <div style="margin-left:auto;color:var(--muted);font-size:1.1rem">›</div>
+    </div>`;
+}
+
+function diffBtn(val, label, sub) {
+    const active = state.difficulty === val;
+    return `<button onclick="setDiff('${val}')" style="flex:1;background:${active?'var(--accent)':'var(--surface2)'};border:2px solid ${active?'var(--accent)':'var(--border)'};border-radius:12px;padding:10px 8px;cursor:pointer;transition:.2s;font-family:'Nunito',sans-serif;color:${active?'#fff':'var(--muted)'};font-weight:700">
+        <div style="font-size:.9rem">${label}</div>
+        <div style="font-size:.72rem;opacity:.75">${sub}</div>
+    </button>`;
+}
+
+function setDiff(d) { state.difficulty = d; renderMenu(); }
+
+// ===================== GAME SETUP =====================
+function startMode(mode) {
+    clearInterval(state.timerInterval);
+    state.mode = mode;
+    state.score = 0;
+    state.streak = 0;
+    state.sessionCorrect = 0;
+    state.sessionTotal = 0;
+    state.answered = false;
+
+    if (mode === 'flash') {
+        state.screen = 'flash';
+        state.flashIndex = 0;
+        state.flashVerbs = shuffle(verbList);
+        state.flashFlipped = false;
+        render(); return;
+    }
+    state.screen = 'game';
+    nextQuestion();
+}
+
+function nextQuestion() {
+    state.answered = false;
+    state.flashFlipped = false;
+    state.currentVerb = verbList[Math.floor(Math.random() * verbList.length)];
+
+    const numOpts = state.difficulty === 'easy' ? 3 : state.difficulty === 'hard' ? 6 : 4;
+    const wrongs = pick(verbList.filter(v => v.en !== state.currentVerb.en), numOpts - 1);
+    state.options = shuffle([state.currentVerb, ...wrongs]);
+
+    if (state.mode === 'timed') startTimer();
+    renderGame();
+}
+
+function startTimer() {
+    clearInterval(state.timerInterval);
+    state.timerSec = 15;
+    state.timerInterval = setInterval(() => {
+        state.timerSec--;
+        updateTimerUI();
+        if (state.timerSec <= 0) {
+            clearInterval(state.timerInterval);
+            if (!state.answered) timeOut();
+        }
+    }, 1000);
+}
+
+function updateTimerUI() {
+    const fill = document.querySelector('.timer-fill');
+    const text = document.querySelector('.timer-text');
+    if (!fill || !text) return;
+    const pct = state.timerSec / 15;
+    fill.style.strokeDashoffset = (1 - pct) * 220;
+    fill.style.stroke = state.timerSec <= 5 ? 'var(--red)' : state.timerSec <= 10 ? 'var(--accent2)' : 'var(--accent)';
+    text.textContent = state.timerSec;
+}
+
+function timeOut() {
+    state.answered = true;
+    state.streak = 0;
+    state.sessionTotal++;
+    state.totalAnswered++;
+    saveStats();
+    showFeedback(false, null);
+}
+
+// ===================== GAME RENDER =====================
+function renderGame() {
+    const v = state.currentVerb;
+    const isInv = state.mode === 'inverted';
+    const isType = state.mode === 'type';
+
+    const question = isInv ? v.en : v.es;
+    const qLabel = isInv ? 'Selecciona la traducción en español' : 'Selecciona la traducción en inglés';
+
+    const progPct = Math.min((state.streak % 10) * 10, 100);
+
+    let optionsHTML = '';
+    if (!isType) {
+        optionsHTML = `<div class="options-grid" id="opts">`;
+        state.options.forEach((opt, i) => {
+            const label = isInv ? opt.es : opt.en;
+            optionsHTML += `<button class="option-btn" id="opt-${i}" onclick="handleAnswer(${i})">${label}</button>`;
+        });
+        optionsHTML += `</div>`;
+    } else {
+        optionsHTML = `
+            <input class="type-input" id="type-inp" placeholder="Escribe el verbo en inglés…" autocomplete="off" autocorrect="off" spellcheck="false" oninput="checkTyping(this)">
+            <div id="type-hint" style="color:var(--muted);font-size:.82rem;text-align:center;margin-top:8px">Presiona Enter para confirmar</div>
+        `;
+    }
+
+    const timerHTML = state.mode === 'timed' ? `
+        <div class="timer-ring">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+                <circle class="timer-track" cx="22" cy="22" r="18"/>
+                <circle class="timer-fill" cx="22" cy="22" r="18" stroke-dasharray="220" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-text">${state.timerSec}</div>
+        </div>` : '';
+
+    app.innerHTML = `
+    <div class="fade-up">
+        <div class="hud">
+            <button class="back-btn" onclick="goMenu()">✕</button>
+            <div class="flex" style="gap:16px;align-items:center">
+                <div class="hud-pill"><span class="hud-icon">⭐</span> <span id="score-el">${state.score}</span></div>
+                <div class="hud-pill" style="color:var(--accent2)"><span class="hud-icon" id="fire-icon">🔥</span> <span id="streak-el">${state.streak}</span></div>
+                ${timerHTML}
+            </div>
+        </div>
+
+        <div class="progress-wrap">
+            <div class="progress-fill" id="prog-fill" style="width:${progPct}%"></div>
+        </div>
+
+        <div class="card" style="text-align:center;margin-bottom:16px">
+            <div class="question-label">${qLabel}</div>
+            <div class="question-word" id="q-word">${question}</div>
+        </div>
+
+        <div id="options-wrap">${optionsHTML}</div>
+        <div id="feedback"></div>
+    </div>`;
+
+    if (isType) {
+        const inp = document.getElementById('type-inp');
+        inp.focus();
+        inp.addEventListener('keydown', e => { if(e.key==='Enter') submitType(); });
+    }
+}
+
+// ===================== QUIZ ANSWER =====================
+function handleAnswer(idx) {
+    if (state.answered) return;
+    state.answered = true;
+    clearInterval(state.timerInterval);
+
+    const isInv = state.mode === 'inverted';
+    const selected = state.options[idx];
+    state._lastSelected = selected;
+    const correct = selected.en === state.currentVerb.en;
+
+    processResult(correct);
+
+    // Style buttons
+    const allBtns = document.querySelectorAll('.option-btn');
+    allBtns.forEach((btn, i) => {
+        btn.disabled = true;
+        const isCorrectOpt = state.options[i].en === state.currentVerb.en;
+        if (i === idx && correct) btn.classList.add('correct');
+        else if (i === idx && !correct) btn.classList.add('wrong');
+        else if (isCorrectOpt) btn.classList.add('correct');
+        else btn.classList.add('dimmed');
+    });
+
+    showFeedback(correct, isInv ? state.currentVerb.es : state.currentVerb.en);
+}
+
+// ===================== TYPE ANSWER =====================
+function checkTyping(el) {
+    const val = el.value.trim().toLowerCase();
+    const ans = state.currentVerb.en.toLowerCase();
+    if (val === ans) { el.classList.add('correct'); submitType(); }
+}
+
+function submitType() {
+    if (state.answered) return;
+    const inp = document.getElementById('type-inp');
+    if (!inp) return;
+    const val = inp.value.trim().toLowerCase();
+    const ans = state.currentVerb.en.toLowerCase();
+    const correct = val === ans;
+
+    inp.disabled = true;
+    state.answered = true;
+    clearInterval(state.timerInterval);
+
+    if (!correct) { inp.classList.add('wrong'); }
+    processResult(correct);
+    showFeedback(correct, state.currentVerb.en);
+}
+
+// ===================== PROCESS RESULT =====================
+function processResult(correct) {
+    state.sessionTotal++;
+    state.totalAnswered++;
+
+    if (correct) {
+        state.sessionCorrect++;
+        state.totalCorrect++;
+        const points = state.mode === 'timed' ? 10 + state.timerSec : 10 + Math.floor(state.streak/3)*2;
+        state.score += points;
+        state.streak++;
+        if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+        soundCorrect();
+        if (state.streak > 0 && state.streak % 5 === 0) { soundStreak(); fireConfetti(); }
+    } else {
+        state.streak = 0;
+        soundWrong();
+    }
+    saveStats();
+
+    // Update HUD
+    const scoreEl = document.getElementById('score-el');
+    const streakEl = document.getElementById('streak-el');
+    const progFill = document.getElementById('prog-fill');
+    if (scoreEl) scoreEl.textContent = state.score;
+    if (streakEl) {
+        streakEl.textContent = state.streak;
+        const fi = document.getElementById('fire-icon');
+        if (fi && correct && state.streak > 0) { fi.classList.remove('fire-pop'); void fi.offsetWidth; fi.classList.add('fire-pop'); }
+    }
+    if (progFill) progFill.style.width = Math.min((state.streak % 10) * 10, 100) + '%';
+}
+
+// ===================== FEEDBACK =====================
+function showFeedback(correct, answer) {
+    const fb = document.getElementById('feedback');
+    if (!fb) return;
+
+    if (correct) {
+        const msgs = ['¡Perfecto! 🎉','¡Correcto! ✨','¡Excelente! 🔥','¡Así se hace! 💪','¡Brillante! ⚡'];
+        const streakMsg = state.streak >= 5 ? `<span style="color:var(--accent2);font-weight:900">¡Racha de ${state.streak}! 🔥</span>` : '';
+        fb.innerHTML = `
+            <div class="feedback-box feedback-correct pop-in" style="text-align:center">
+                <div style="font-size:1.2rem;font-weight:900;color:var(--green)">${msgs[Math.floor(Math.random()*msgs.length)]}</div>
+                ${streakMsg}
+            </div>`;
+        setTimeout(nextQuestion, state.streak >= 3 ? 900 : 1100);
+    } else {
+        // Find which option the user clicked (for quiz/inverted modes)
+        const selectedVerb = state._lastSelected || null;
+        const selectedInfo = selectedVerb
+            ? `<p style="color:var(--muted);font-size:.9rem;margin-bottom:6px">Elegiste <span style="font-weight:800;color:var(--red)">"${selectedVerb.en}"</span>, pero esa palabra significa <span style="font-weight:800;text-decoration:underline">${selectedVerb.es}</span>.</p>`
+            : '';
+        fb.innerHTML = `
+            <div class="feedback-box feedback-wrong pop-in">
+                <div style="font-weight:800;color:var(--red);margin-bottom:10px">❌ ¡Casi lo logras!</div>
+                ${selectedInfo}
+                <div style="background:rgba(247,201,72,.08);border-radius:10px;padding:10px 14px;margin-top:6px">
+                    Para <b>"${state.currentVerb.es}"</b> usa <span style="font-weight:900;color:var(--green);font-size:1.05rem">"${state.currentVerb.en}"</span>
+                </div>
+                <button class="btn btn-ghost btn-full mt-4" onclick="nextQuestion()" style="font-size:.95rem;padding:12px">
+                    Siguiente →
+                </button>
+            </div>`;
+    }
+}
+
+// ===================== FLASHCARDS =====================
+function renderFlash() {
+    const verbs = state.flashVerbs;
+    const idx = state.flashIndex || 0;
+    const v = verbs[idx];
+    const total = verbs.length;
+    const flipped = state.flashFlipped;
+
+    app.innerHTML = `
+    <div class="fade-up">
+        <div class="hud">
+            <button class="back-btn" onclick="goMenu()">✕</button>
+            <div class="hud-pill" style="color:var(--muted)">${idx+1} / ${total}</div>
+            <div></div>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-fill" style="width:${((idx+1)/total*100).toFixed(1)}%"></div>
+        </div>
+
+        <div style="text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:12px;font-weight:700">
+            Toca la tarjeta para revelar la traducción
+        </div>
+
+        <div class="flashcard-wrap" onclick="flipCard()">
+            <div class="flashcard-inner ${flipped?'flipped':''}">
+                <div class="flashcard-face" style="text-align:center">
+                    <div style="color:var(--muted);font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">🇬🇧 Inglés</div>
+                    <div style="font-size:3rem;font-weight:900">${v.en}</div>
+                </div>
+                <div class="flashcard-face flashcard-back" style="text-align:center">
+                    <div style="color:var(--muted);font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">🇨🇴 Español</div>
+                    <div style="font-size:1.8rem;font-weight:900">${v.es}</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:20px">
+            <button class="btn btn-ghost" style="flex:1" onclick="flashNav(-1)" ${idx===0?'disabled':''}>← Anterior</button>
+            <button class="btn btn-primary" style="flex:1" onclick="flashNav(1)">${idx===total-1?'¡Listo! 🎉':'Siguiente →'}</button>
+        </div>
+
+        <div style="text-align:center;margin-top:16px">
+            <button class="btn btn-ghost" onclick="startMode('quiz')" style="font-size:.85rem;padding:10px 20px">
+                🎯 Jugar Quiz con estos verbos
+            </button>
+        </div>
+    </div>`;
+}
+
+function flipCard() {
+    state.flashFlipped = !state.flashFlipped;
+    renderFlash();
+}
+
+function flashNav(dir) {
+    state.flashFlipped = false;
+    state.flashIndex = (state.flashIndex || 0) + dir;
+    if (state.flashIndex < 0) state.flashIndex = 0;
+    if (state.flashIndex >= state.flashVerbs.length) { goMenu(); return; }
+    renderFlash();
+}
+
+// ===================== STATS =====================
+function goStats() { state.screen = 'stats'; renderStats(); }
+
+function renderStats() {
+    const pct = state.totalAnswered > 0 ? Math.round(state.totalCorrect / state.totalAnswered * 100) : 0;
+
+    const badges = [
+        { icon:'🎯', name:'Primer acierto', earned: state.totalCorrect >= 1 },
+        { icon:'🔥', name:'Racha x5', earned: state.bestStreak >= 5 },
+        { icon:'💪', name:'Racha x10', earned: state.bestStreak >= 10 },
+        { icon:'🏆', name:'100 correctas', earned: state.totalCorrect >= 100 },
+        { icon:'⭐', name:'50 preguntas', earned: state.totalAnswered >= 50 },
+        { icon:'🧠', name:'Maestro x20 racha', earned: state.bestStreak >= 20 },
+    ];
+
+    app.innerHTML = `
+    <div class="fade-up">
+        <div class="hud">
+            <button class="back-btn" onclick="goMenu()">✕</button>
+            <div style="font-weight:800">📊 Estadísticas</div>
+            <div></div>
+        </div>
+
+        <div class="stat-grid mb-4">
+            <div class="stat-box"><div class="stat-num text-accent">${state.totalAnswered}</div><div class="stat-label">Respondidas</div></div>
+            <div class="stat-box"><div class="stat-num text-green">${state.totalCorrect}</div><div class="stat-label">Correctas</div></div>
+            <div class="stat-box"><div class="stat-num text-gold">${pct}%</div><div class="stat-label">Precisión</div></div>
+            <div class="stat-box"><div class="stat-num" style="color:var(--red)">${state.bestStreak}</div><div class="stat-label">Mejor racha</div></div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="section-title mb-2">Logros</div>
+            <div class="badge-row">
+                ${badges.map(b => `<div class="badge ${b.earned?'earned':''}">${b.icon} ${b.name}</div>`).join('')}
+            </div>
+        </div>
+
+        <button class="btn btn-red btn-ghost btn-full" onclick="resetStats()" style="font-size:.85rem;padding:10px">
+            🗑️ Reiniciar estadísticas
+        </button>
+    </div>`;
+}
+
+function resetStats() {
+    if (!confirm('¿Borrar todas las estadísticas?')) return;
+    state.totalAnswered = 0; state.totalCorrect = 0; state.bestStreak = 0;
+    saveStats(); renderStats();
+}
+
+// ===================== RESULT =====================
+function renderResult() {
+    const pct = state.sessionTotal > 0 ? Math.round(state.sessionCorrect / state.sessionTotal * 100) : 0;
+    app.innerHTML = `
+    <div class="fade-up" style="text-align:center">
+        <div style="font-size:4rem;margin-bottom:8px">${pct>=80?'🏆':pct>=50?'💪':'📚'}</div>
+        <div style="font-size:2rem;font-weight:900;margin-bottom:4px">¡Sesión completada!</div>
+        <div style="color:var(--muted);margin-bottom:24px">Aquí está tu resumen</div>
+        <div class="stat-grid mb-4">
+            <div class="stat-box"><div class="stat-num text-gold">${state.score}</div><div class="stat-label">Puntos</div></div>
+            <div class="stat-box"><div class="stat-num text-green">${state.sessionCorrect}/${state.sessionTotal}</div><div class="stat-label">Correctas</div></div>
+            <div class="stat-box"><div class="stat-num text-accent">${pct}%</div><div class="stat-label">Precisión</div></div>
+            <div class="stat-box"><div class="stat-num" style="color:var(--red)">${state.bestStreak}</div><div class="stat-label">Mejor racha</div></div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg mb-3" onclick="startMode(state.mode)">🔄 Jugar de nuevo</button>
+        <button class="btn btn-ghost btn-full" onclick="goMenu()">← Volver al menú</button>
+    </div>`;
+}
+
+// ===================== NAVIGATION =====================
+function goMenu() { clearInterval(state.timerInterval); state.screen='menu'; render(); }
+
+// ===================== START =====================
+render();
+</script>
+</body>
+</html>
